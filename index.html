@@ -199,6 +199,30 @@
         }, duration);
       }
 
+      async function copyText(text) {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch {
+        }
+
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+
+        try {
+          textArea.select();
+          return document.execCommand("copy");
+        } finally {
+          textArea.remove();
+        }
+      }
+
       telegram.addEventListener("click", playClick);
 
       email.addEventListener("click", async (event) => {
@@ -206,11 +230,14 @@
         playClick();
 
         try {
-          await navigator.clipboard.writeText(EMAIL);
-          showNotification("EMAIL COPIED");
+          const copied = await copyText(EMAIL);
+          showNotification(
+            copied ? "EMAIL COPIED" : `COPY FAILED: ${EMAIL}`,
+            4000,
+          );
         } catch (error) {
-          // Clipboard unavailable: show the address so it can be copied by hand.
-          showNotification(EMAIL, 4000);
+          console.warn(error);
+          showNotification(`COPY FAILED: ${EMAIL}`, 4000);
         }
       });
     </script>
