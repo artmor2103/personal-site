@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <title>Artem Morshinin</title>
+    <meta name="description" content="Artem Morshinin — contacts." />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Artem Morshinin" />
+    <meta property="og:description" content="Artem Morshinin — contacts." />
+
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        overflow: hidden;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        overscroll-behavior: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #000;
+        color: #f0f0f0;
+        font:
+          400 14px/1.5 system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+
+      .container {
+        text-align: center;
+        animation: appear 1s ease both;
+      }
+
+      .name {
+        font: inherit;
+        transition: opacity 0.3s ease;
+      }
+
+      .links {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .links a {
+        color: #777;
+        font: inherit;
+        text-decoration: none;
+        transition:
+          color 0.25s ease,
+          opacity 0.25s ease;
+      }
+
+      .links a:hover {
+        color: #fff;
+      }
+
+      .links a:active {
+        opacity: 0.4;
+      }
+
+      .links a:focus-visible {
+        color: #fff;
+        outline: 1px solid #fff;
+        outline-offset: 4px;
+      }
+
+      .notification {
+        position: fixed;
+        bottom: 50px;
+        left: 50%;
+        color: #fff;
+        font: inherit;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 10px);
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+
+      .notification.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .links {
+          gap: 20px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1 class="name">Artem Morshinin</h1>
+
+      <nav class="links">
+        <a
+          href="https://t.me/artmorrr"
+          target="_blank"
+          rel="noopener noreferrer"
+          id="telegramLink"
+          >Telegram</a
+        >
+        <a href="mailto:inbox@artemmorshinin.ru" id="emailLink">Email</a>
+      </nav>
+    </main>
+
+    <div class="notification" id="notification" aria-live="polite"></div>
+
+    <script>
+      const EMAIL = "inbox@artemmorshinin.ru";
+
+      const telegram = document.getElementById("telegramLink");
+      const email = document.getElementById("emailLink");
+      const notification = document.getElementById("notification");
+
+      email.href = `mailto:${EMAIL}`;
+
+      let audioContext;
+      let notificationTimeout;
+
+      function playClick() {
+        try {
+          audioContext ??= new AudioContext();
+
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+
+          oscillator.connect(gain);
+          gain.connect(audioContext.destination);
+
+          oscillator.type = "sine";
+          oscillator.frequency.value = 700;
+
+          gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioContext.currentTime + 0.05,
+          );
+
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.05);
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+
+      function showNotification(message, duration = 1800) {
+        notification.textContent = message;
+        notification.classList.add("show");
+
+        clearTimeout(notificationTimeout);
+
+        notificationTimeout = setTimeout(() => {
+          notification.classList.remove("show");
+        }, duration);
+      }
+
+      telegram.addEventListener("click", playClick);
+
+      email.addEventListener("click", async (event) => {
+        event.preventDefault();
+        playClick();
+
+        try {
+          await navigator.clipboard.writeText(EMAIL);
+          showNotification("EMAIL COPIED");
+        } catch (error) {
+          // Clipboard unavailable: show the address so it can be copied by hand.
+          showNotification(EMAIL, 4000);
+        }
+      });
+    </script>
+  </body>
+</html>
